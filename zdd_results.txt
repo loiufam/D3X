@@ -1,0 +1,211 @@
+==================================================
+ZDD Batch Processing Results
+==================================================
+Processing Time: 1758803447
+
+Filename                     Vars       Nodes   Solutions     Updates  Time(ms)    Status
+-----------------------------------------------------------------------------------------------
+Cynet.zdd                       -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+att48.zdd                      14    70804416    35391177   227524945    204034   SUCCESS
+grafo8513.100.zdd              23    70952748    35392391   244593573      7591   SUCCESS
+grafo254.10.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo121.20.zdd                20    71099807    35406971   246306783      1059   SUCCESS
+Darkstrand.zdd                 28    88725630    40996101   428420899    126318   SUCCESS
+doublefact-17.zdd               -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo305.16.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo158.21.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+latin7-blk-00009.zdd            -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Gblnet.zdd                      -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo7785.100.zdd              19    89537751    41383336   431519904      2644   SUCCESS
+Goodnet.zdd                     -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo242.14.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Padi.zdd                        -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo309.26.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Kreonet.zdd                     -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+AttMpls.zdd                     -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo160.30.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+UsCarrier.zdd                  30    89540440    41383336   431520223         6   SUCCESS
+grafo310.14.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+KentmanFeb2008.zdd              -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Nordu1989.zdd                   -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Belnet2008.zdd                  -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo176.30.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+ulysses16.zdd                  16    91592761    41955862   457642791     15031   SUCCESS
+latin7-blk-00008.zdd            -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo332.82.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Geant2001.zdd                   -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Uran.zdd                        -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Missouri.zdd                   17    91592896    41955894   457644504         1   SUCCESS
+doublefact-19.zdd               -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo148.28.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo8674.100.zdd              24   748796484   332172359  3215299254   2205552   SUCCESS
+grafo8564.100.zdd              20   748808245   332172359  3215521040       123   SUCCESS
+sppnw30.zdd                     -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo225.12.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Garr201101.zdd                  -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+NetworkUsa.zdd                  -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo308.14.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo130.31.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo239.15.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Pacificwave.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo251.20.zdd                20   748860147   332176271  3218209443      1298   SUCCESS
+Rediris.zdd                     -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+GtsPoland.zdd                   -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Nordu1997.zdd                   -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo152.21.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+HiberniaNireland.zdd            -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Ion.zdd                        33   748860261   332176271  3218209632         0   SUCCESS
+grafo215.20.zdd                20   748902176   332184999  3219186056       569   SUCCESS
+KentmanJan2011.zdd              -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Epoch.zdd                       -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Canerie.zdd                     -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grid33.zdd                     16   749081383   332235275  3221024476      1188   SUCCESS
+kts15-ptpt-0021.zdd             -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Columbus.zdd                    -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+eil51.zdd                      15  1737037887   826213527  5998489109   2617272   SUCCESS
+grafo285.14.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo140.22.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo128.35.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Deltacom.zdd                   30  1737224794   826213527  5998504441       377   SUCCESS
+Arn.zdd                         -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+bell-10.zdd                     -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Sunet.zdd                       -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo268.15.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+bell-09.zdd                     -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Garr200112.zdd                  -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo145.31.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo299.19.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+sppnw15.zdd                     -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+sppnw24.zdd                     -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo293.17.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo168.31.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo275.16.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+IowaStatewideFiberMap.zdd       -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Agis.zdd                        -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+UsSignal.zdd                   17  1737225055   826213527  5998509716         4   SUCCESS
+grafo344.36.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Rhnet.zdd                       -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Intranetwork.zdd                -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo205.30.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo122.12.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo266.13.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Roedunet.zdd                    -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Telcove.in.zdd                  -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+sppnw19.zdd                     -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo253.15.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Nextgen.zdd                     -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo8373.100.zdd              25  1753098289   826213527  6931354740    333742   SUCCESS
+grafo251.zdd                    -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Funet.zdd                      23  1754091392   826502263  6942685947      7380   SUCCESS
+grafo241.16.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo8224.100.zdd              20  1783455863   839605260  7144377429    141736   SUCCESS
+sppnw25.zdd                     -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+HiberniaIreland.zdd             -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+VisionNet.zdd                  24  1783489673   839609410  7144608964       182   SUCCESS
+Telcove.zdd                     -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo117.20.zdd                20  1783514333   839611822  7145282876       394   SUCCESS
+grafo341.30.zdd                30  1783514335   839611822  7145282918         0   SUCCESS
+grafo198.18.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Twaren.zdd                      -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo117.zdd                    -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo211.14.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Nordu2005.zdd                   -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo232.16.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+burma14.zdd                    14  1783890620   839721487  7148211483      2045   SUCCESS
+exotic_fives.zdd                -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+Interoute.zdd                  28  1783928117   839721487  7148675641       352   SUCCESS
+grafo190.20.zdd                20  1784249402   839773713  7157370634      4293   SUCCESS
+grafo206.12.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo244.20.zdd                20  1784292915   839776415  7158254135       505   SUCCESS
+grafo269.12.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+kts15-ptpt-0020.zdd           132  1784296060   839776423  7158762211       286   SUCCESS
+Dfn.zdd                         -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
+grafo222.11.zdd                 -           -           -           -         -    FAILED
+    Error: initial zdd is invalid
