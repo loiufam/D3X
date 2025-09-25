@@ -120,11 +120,11 @@ struct Node {
     plink_t hi_prev;
     plink_t lo_next;
     plink_t lo_prev;
-    count_t count_hi;
-    count_t count_lo;
-    count_t count_upper;
-    uint16_t var;
-    uint16_t padding;
+    count_t count_hi; // hi-child 到终端（T-terminal）的路径数
+    count_t count_lo; // lo-child 到终端（T-terminal）的路径数
+    count_t count_upper; // 从根节点到当前节点的路径数
+    uint16_t var; // 当前节点对应的变量编号
+    uint16_t padding; // 内存对齐填充位
 };
 
 /**
@@ -363,7 +363,7 @@ class ZddWithLinks {
     const int num_var_;
 
     // storing the node cells
-    vector<Node> table_;
+    vector<Node> table_; 
     // storing the header cells
     vector<Header> header_;
 

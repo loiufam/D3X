@@ -150,6 +150,7 @@ void ZddWithLinks::search(vector<vector<uint16_t>> &solution, const int depth) {
     return;
 }
 
+// 从文件中加载ZDD
 void ZddWithLinks::load_zdd_from_file(const string &file_name) {
     ifstream ifs(file_name);
 
@@ -162,6 +163,7 @@ void ZddWithLinks::load_zdd_from_file(const string &file_name) {
 
     unordered_map<int, int> id_convert_table;
 
+    // 按行读取文件
     while (getline(ifs, line)) {
         if (line[0] == '.' || line[0] == '\n' || line[0] == '#' || line.size() == 0) continue;
 
@@ -172,10 +174,10 @@ void ZddWithLinks::load_zdd_from_file(const string &file_name) {
         int lo_id;
         string hi_str;
         int hi_id;
-        iss >> nid;
-        iss >> var;
-        iss >> lo_str;
-        iss >> hi_str;
+        iss >> nid; // 节点编号
+        iss >> var; // 变量序号
+        iss >> lo_str; // 低变量节点编号字符串
+        iss >> hi_str; // 高变量节点编号字符串
 
         id_convert_table[nid] = table_.size();
         if (lo_str[0] == 'B') {
@@ -767,12 +769,14 @@ void ZddWithLinks::batch_uncover(
 
 void ZddWithLinks::setup_dancing_links() {
     // initialize counts
+    // 初始化Node计数
     for (Node &node : table_) {
         node.count_upper = 0;
         node.count_lo = 0;
         node.count_hi = 0;
     }
     // compute lower counts
+    // 计算下层计数
     for (size_t i = 0; i < table_.size(); i++) {
         Node &node = table_[i];
         if (node.lo == DD_ZERO_TERM) {
@@ -792,6 +796,7 @@ void ZddWithLinks::setup_dancing_links() {
     }
 
     // compute upper counts
+    // 计算上层节点计数
     table_[table_.size() - 1].count_upper = 1;
     for (int i = table_.size() - 1; i >= 0; i--) {
         Node &node = table_[i];
@@ -803,6 +808,7 @@ void ZddWithLinks::setup_dancing_links() {
         }
     }
     // set up up/down links
+    // 设置上下节点链接
     for (size_t i = 0; i < table_.size(); i++) {
         Node &node = table_[i];
         Header &header = header_[node.var];
@@ -1496,8 +1502,9 @@ void ZddWithLinks::unhide_node_lowerzero(const int32_t node_id) {
 }
 
 bool ZddWithLinks::sanity() const {
-    int pos, prev;
+    int pos, prev;  // pos指向当前链头，prev记录上一个节点
 
+    // 返回值
     bool has_error = false;
 
     for (pos = header_[0].right, prev = 0;;
