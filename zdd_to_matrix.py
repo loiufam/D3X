@@ -1,3 +1,5 @@
+import os
+
 def zbdd_to_sparse_matrix_file(input_file_path, output_file_path):
     # Step 1: 解析节点
     nodes = {}
@@ -53,5 +55,10 @@ def zbdd_to_sparse_matrix_file(input_file_path, output_file_path):
         for row in sparse_matrix:
             f.write(f"{len(row)} " + " ".join(map(str, row)) + "\n")
 
-# 转换
-zbdd_to_sparse_matrix_file("data/Missouri.zdd", "Missouri_matrix.txt")
+# 批量转换
+for file in os.listdir("data"):
+    if file.endswith(".zdd"):
+        filename = file[:-4]
+        zbdd_to_sparse_matrix_file("data/" + file, "output/" + filename + ".txt")
+
+# zbdd_to_sparse_matrix_file("data/Missouri.zdd", "Missouri_matrix.txt")
