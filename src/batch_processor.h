@@ -18,7 +18,7 @@ struct ProcessResult {
     uint64_t num_nodes;
     uint64_t num_solutions;
     uint64_t num_updates;
-    uint64_t time_msecs;
+    double time_secs;
     bool success;
     string error_message;
     

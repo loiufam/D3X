@@ -3,7 +3,7 @@
 namespace fs = std::filesystem;
 
 ProcessResult::ProcessResult() : num_vars(0), num_nodes(0), num_solutions(0), 
-                                num_updates(0), time_msecs(0), success(false) {}
+                                num_updates(0), time_secs(0.0), success(false) {}
 
 int get_num_vars_from_zdd_file(const string& file_name) {
     ifstream ifs(file_name);
@@ -31,7 +31,7 @@ int get_num_vars_from_zdd_file(const string& file_name) {
 
 ProcessResult process_single_zdd_file(const string& zdd_file_path) {
     ProcessResult result;
-    result.filename = fs::path(zdd_file_path).filename().string();
+    result.filename = fs::path(zdd_file_path).stem().string();
     
     try {
         // 获取变量数量
@@ -49,16 +49,15 @@ ProcessResult process_single_zdd_file(const string& zdd_file_path) {
         
         // 执行搜索
         vector<vector<uint16_t>> solution;
-        auto start_time = std::chrono::system_clock::now();
+        auto start_time = std::chrono::high_resolution_clock::now();
         zdd_with_links.search(solution, 0);
-        auto end_time = std::chrono::system_clock::now();
+        auto end_time = std::chrono::high_resolution_clock::now();
         
         // 记录结果
         result.num_nodes = ZddWithLinks::num_search_tree_nodes;
         result.num_solutions = ZddWithLinks::num_solutions;
         result.num_updates = ZddWithLinks::num_updates;
-        result.time_msecs = std::chrono::duration_cast<std::chrono::milliseconds>(
-            end_time - start_time).count();
+        result.time_secs =  std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count();;
         result.success = true;
         
     } catch (const exception& e) {
@@ -98,7 +97,7 @@ void write_result_line(ofstream& output_file, const ProcessResult& result) {
                    << right << setw(12) << result.num_nodes
                    << right << setw(12) << result.num_solutions
                    << right << setw(12) << result.num_updates
-                   << right << setw(10) << result.time_msecs
+                   << right << setw(10) << result.time_secs
                    << right << setw(10) << "SUCCESS";
     } else {
         output_file << right << setw(8) << "-"
@@ -173,7 +172,7 @@ void process_directory(const string& input_dir, const string& output_file_path) 
         // 控制台输出进度
         if (result.success) {
             cout << "  -> SUCCESS: " << result.num_solutions << " solutions, " 
-                 << result.time_msecs << " ms" << endl;
+                 << result.time_secs << " ms" << endl;
         } else {
             cout << "  -> FAILED: " << result.error_message << endl;
         }
