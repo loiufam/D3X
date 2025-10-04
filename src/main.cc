@@ -70,16 +70,16 @@ int main(int argc, char** argv) {
         
         fprintf(stderr, "load files done\n");
         vector<vector<uint16_t>> solution;
-        auto start_time = std::chrono::system_clock::now();
+        auto start_time = std::chrono::high_resolution_clock::now();
         zdd_with_links.search(solution, 0);
-        auto end_time = std::chrono::system_clock::now();
+        auto end_time = std::chrono::high_resolution_clock::now();
         
         printf("num nodes %llu, num solutions %llu, num updates %llu, "
-               "time: %llu msecs\n", ZddWithLinks::num_search_tree_nodes,
+               "time: %.4f secs\n", ZddWithLinks::num_search_tree_nodes,
                ZddWithLinks::num_solutions, ZddWithLinks::num_updates,
-               std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
-                                                                     start_time)
-                   .count());
+               std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count()
+            );
+                   
     } else {
         show_help_and_exit();
     }

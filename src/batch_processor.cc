@@ -57,7 +57,7 @@ ProcessResult process_single_zdd_file(const string& zdd_file_path) {
         result.num_nodes = ZddWithLinks::num_search_tree_nodes;
         result.num_solutions = ZddWithLinks::num_solutions;
         result.num_updates = ZddWithLinks::num_updates;
-        result.time_secs =  std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count();;
+        result.time_secs =  std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count();
         result.success = true;
         
     } catch (const exception& e) {
