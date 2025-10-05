@@ -36,10 +36,12 @@ ProcessResult process_single_zdd_file(const string& zdd_file_path) {
     try {
         // 获取变量数量
         result.num_vars = get_num_vars_from_zdd_file(zdd_file_path);
-        
+        std::cout << "num_vars: " << result.num_vars << std::endl;
+
         // 创建ZDD对象并加载文件
         ZddWithLinks zdd_with_links(result.num_vars, false);
         zdd_with_links.load_zdd_from_file(zdd_file_path);
+        std::cout << "ZDD loaded" << std::endl;
         
         // 检查ZDD有效性
         if (zdd_with_links.sanity()) {
@@ -47,6 +49,7 @@ ProcessResult process_single_zdd_file(const string& zdd_file_path) {
             return result;
         }
         
+        std::cout << "ZDD sanity check passed" << std::endl;
         // 执行搜索
         vector<vector<uint16_t>> solution;
         auto start_time = std::chrono::high_resolution_clock::now();
@@ -73,9 +76,9 @@ void write_results_header(ofstream& output_file) {
     output_file << "==================================================" << endl;
     output_file << "ZDD Batch Processing Results" << endl;
     output_file << "==================================================" << endl;
-    output_file << "Processing Time: " << 
-        chrono::duration_cast<chrono::seconds>(
-            chrono::system_clock::now().time_since_epoch()).count() << endl;
+    // output_file << "Processing Time: " << 
+    //     chrono::duration_cast<chrono::seconds>(
+    //         chrono::system_clock::now().time_since_epoch()).count() << endl;
     output_file << endl;
     
     // 写入表头
@@ -84,7 +87,7 @@ void write_results_header(ofstream& output_file) {
                << right << setw(12) << "Nodes" 
                << right << setw(12) << "Solutions"
                << right << setw(12) << "Updates"
-               << right << setw(10) << "Time(ms)"
+               << right << setw(10) << "Time(s)"
                << right << setw(10) << "Status" << endl;
     output_file << string(95, '-') << endl;
 }
@@ -163,6 +166,7 @@ void process_directory(const string& input_dir, const string& output_file_path) 
              << fs::path(file_path).filename().string() << "..." << endl;
         
         ProcessResult result = process_single_zdd_file(file_path);
+        
         results.push_back(result);
         
         // 写入结果到文件
