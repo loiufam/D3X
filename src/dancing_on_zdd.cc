@@ -2,6 +2,8 @@
 
 #include "dancing_on_zdd.h"
 
+#include <exception>
+#include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -35,6 +37,9 @@ ZddWithLinks::ZddWithLinks(int num_var, bool sanity_check)
         header_.emplace_back(i, i + 2, -1, -1, i + 1, 0);
     }
     header_[num_var].right = 0;
+
+    stopwatch.setTimeBound(1200); // 20 minutes time limit
+    std::cout << "Time limit set to 1200 seconds." << std::endl;
 }
 
 ZddWithLinks::ZddWithLinks(const ZddWithLinks &obj)
@@ -72,6 +77,10 @@ bool ZddWithLinks::operator==(const ZddWithLinks &obj) const {
 
 void ZddWithLinks::search(vector<vector<uint16_t>> &solution, const int depth) {
     num_search_tree_nodes++;
+
+    if (stopwatch.timeBoundBroken()) {
+        throw std::runtime_error("time limit exceeded");
+    }
 
     if (header_[0].right == 0)  // all columns are covered
     {

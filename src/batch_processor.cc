@@ -34,6 +34,8 @@ ProcessResult process_single_zdd_file(const string& zdd_file_path) {
     result.filename = fs::path(zdd_file_path).stem().string();
     
     try {
+
+        auto start_time = std::chrono::high_resolution_clock::now();
         // 获取变量数量
         result.num_vars = get_num_vars_from_zdd_file(zdd_file_path);
         std::cout << "num_vars: " << result.num_vars << std::endl;
@@ -52,7 +54,7 @@ ProcessResult process_single_zdd_file(const string& zdd_file_path) {
         std::cout << "ZDD sanity check passed" << std::endl;
         // 执行搜索
         vector<vector<uint16_t>> solution;
-        auto start_time = std::chrono::high_resolution_clock::now();
+        zdd_with_links.stopwatch.markStartTime();
         zdd_with_links.search(solution, 0);
         auto end_time = std::chrono::high_resolution_clock::now();
         
@@ -166,6 +168,9 @@ void process_directory(const string& input_dir, const string& output_file_path) 
              << fs::path(file_path).filename().string() << "..." << endl;
         
         ProcessResult result = process_single_zdd_file(file_path);
+        std::cout << "  Nodes: " << result.num_nodes 
+                  << ", Solutions: " << result.num_solutions 
+                  << ", Time: " << result.time_secs << " s" << std::endl;
         
         results.push_back(result);
         
@@ -176,7 +181,7 @@ void process_directory(const string& input_dir, const string& output_file_path) 
         // 控制台输出进度
         if (result.success) {
             cout << "  -> SUCCESS: " << result.num_solutions << " solutions, " 
-                 << result.time_secs << " ms" << endl;
+                 << result.time_secs << " s" << endl;
         } else {
             cout << "  -> FAILED: " << result.error_message << endl;
         }

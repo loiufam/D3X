@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "hidden_node_stack.h"
+#include "timer.h"
 using namespace std;
 class DpManager;
 class HiddenNodeStack;
@@ -182,6 +183,8 @@ class ZddWithLinks {
 
     ZddWithLinks(int num_var, bool sanity_check = false);
     ZddWithLinks(const ZddWithLinks &obj);
+
+    CStopWatch stopwatch;
 
     bool operator==(const ZddWithLinks &obj) const;
 
