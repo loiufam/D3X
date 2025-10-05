@@ -1,0 +1,6 @@
+Filename,Nodes,sols,Updates,Time(s),Status
+latin8-blk-00009,-,-,-,-,FAILED
+att48,-,-,-,-,FAILED
+grafo8513.100,26438109,10887924,168681802,7.3664,SUCCESS
+grafo121.20,26585168,10902504,170395012,1.0463,SUCCESS
+sppnw09,-,-,-,-,FAILED

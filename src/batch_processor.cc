@@ -1,4 +1,7 @@
 #include "batch_processor.h"
+#include "dancing_on_zdd.h"
+#include <stdexcept>
+#include <chrono>
 
 namespace fs = std::filesystem;
 
@@ -29,19 +32,19 @@ int get_num_vars_from_zdd_file(const string& file_name) {
     return vars.size();
 }
 
-ProcessResult process_single_zdd_file(const string& zdd_file_path) {
+ProcessResult process_single_zdd_file(const string& zdd_file_path, ofstream& output_file) {
     ProcessResult result;
     result.filename = fs::path(zdd_file_path).stem().string();
-    
-    try {
+    output_file << result.filename << ",";
 
-        auto start_time = std::chrono::high_resolution_clock::now();
+    try {
+  
         // 获取变量数量
-        result.num_vars = get_num_vars_from_zdd_file(zdd_file_path);
-        std::cout << "num_vars: " << result.num_vars << std::endl;
+        int num_vars = get_num_vars_from_zdd_file(zdd_file_path);
+        std::cout << "num_vars: " << num_vars << std::endl;
 
         // 创建ZDD对象并加载文件
-        ZddWithLinks zdd_with_links(result.num_vars, false);
+        ZddWithLinks zdd_with_links(num_vars, false);
         zdd_with_links.load_zdd_from_file(zdd_file_path);
         std::cout << "ZDD loaded" << std::endl;
         
@@ -54,69 +57,86 @@ ProcessResult process_single_zdd_file(const string& zdd_file_path) {
         std::cout << "ZDD sanity check passed" << std::endl;
         // 执行搜索
         vector<vector<uint16_t>> solution;
+        auto start_time = std::chrono::high_resolution_clock::now();
         zdd_with_links.stopwatch.markStartTime();
         zdd_with_links.search(solution, 0);
         auto end_time = std::chrono::high_resolution_clock::now();
+        double searchTime = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time)
+                                                .count();
+
+        output_file << ZddWithLinks::num_search_tree_nodes << ","
+            << ZddWithLinks::num_solutions << ","
+            << ZddWithLinks::num_updates << ","
+            << std::fixed << std::setprecision(4)
+            << searchTime << ","
+            << "SUCCESS\n";
+
+        output_file.flush(); // 确保实时写入
         
         // 记录结果
-        result.num_nodes = ZddWithLinks::num_search_tree_nodes;
-        result.num_solutions = ZddWithLinks::num_solutions;
-        result.num_updates = ZddWithLinks::num_updates;
-        result.time_secs =  std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count();
         result.success = true;
-        
-    } catch (const exception& e) {
+
+    } catch (const runtime_error& e) {
         result.error_message = e.what();
-    } catch (...) {
-        result.error_message = "Unknown error occurred";
-    }
-    
+        output_file  << "-,"
+                   << "-,"
+                   << "-,"
+                   << "-,"
+                   << "FAILED\n";
+        output_file.flush();
+    } 
+
     return result;
 }
 
 void write_results_header(ofstream& output_file) {
-    output_file << "==================================================" << endl;
-    output_file << "ZDD Batch Processing Results" << endl;
-    output_file << "==================================================" << endl;
+    // output_file << "==================================================" << endl;
+    // output_file << "ZDD Batch Processing Results" << endl;
+    // output_file << "==================================================" << endl;
     // output_file << "Processing Time: " << 
     //     chrono::duration_cast<chrono::seconds>(
     //         chrono::system_clock::now().time_since_epoch()).count() << endl;
-    output_file << endl;
+    // output_file << endl;
+    output_file << "Filename,Nodes,sols,Updates,Time(s),Status" << endl;
     
-    // 写入表头
-    output_file << left << setw(25) << "Filename" 
-               << right << setw(8) << "Vars"
-               << right << setw(12) << "Nodes" 
-               << right << setw(12) << "Solutions"
-               << right << setw(12) << "Updates"
-               << right << setw(10) << "Time(s)"
-               << right << setw(10) << "Status" << endl;
-    output_file << string(95, '-') << endl;
+    // 写入表
+    // output_file << left << setw(25) << "Filename" 
+    //            << right << setw(8) << "Vars"
+    //            << right << setw(12) << "Nodes" 
+    //            << right << setw(12) << "Solutions"
+    //            << right << setw(12) << "Updates"
+    //            << right << setw(10) << "Time(s)"
+    //            << right << setw(10) << "Status" << endl;
+    // output_file << string(95, '-') << endl;
 }
 
 void write_result_line(ofstream& output_file, const ProcessResult& result) {
-    output_file << left << setw(25) << result.filename;
+    output_file << result.filename << ",";
     
     if (result.success) {
-        output_file << right << setw(8) << result.num_vars
-                   << right << setw(12) << result.num_nodes
-                   << right << setw(12) << result.num_solutions
-                   << right << setw(12) << result.num_updates
-                   << right << setw(10) << result.time_secs
-                   << right << setw(10) << "SUCCESS";
+            // output_file << result.num_vars << ", "
+            //     << result.num_nodes << ", "
+            //     << result.num_solutions << ", "
+            //     << result.num_updates << ", "
+            //     << result.time_secs << ", "
+            //     << "SUCCESS" << std::endl;
+            output_file << result.num_nodes << ","
+                       << result.num_solutions << ","
+                       << result.num_updates << ","
+                       << result.time_secs << ","
+                       << "SUCCESS";
     } else {
-        output_file << right << setw(8) << "-"
-                   << right << setw(12) << "-"
-                   << right << setw(12) << "-"
-                   << right << setw(12) << "-"
-                   << right << setw(10) << "-"
-                   << right << setw(10) << "FAILED";
+        output_file  << "-,"
+                   << "-,"
+                   << "-,"
+                   << "-,"
+                   << "FAILED";
     }
     output_file << endl;
     
-    if (!result.success) {
-        output_file << "    Error: " << result.error_message << endl;
-    }
+    // if (!result.success) {
+    //     output_file << "    Error: " << result.error_message << endl;
+    // }
 }
 
 
@@ -167,21 +187,17 @@ void process_directory(const string& input_dir, const string& output_file_path) 
         cout << "Processing [" << processed << "/" << zdd_files.size() << "]: " 
              << fs::path(file_path).filename().string() << "..." << endl;
         
-        ProcessResult result = process_single_zdd_file(file_path);
-        std::cout << "  Nodes: " << result.num_nodes 
-                  << ", Solutions: " << result.num_solutions 
-                  << ", Time: " << result.time_secs << " s" << std::endl;
+        ProcessResult result = process_single_zdd_file(file_path, output_file);
         
         results.push_back(result);
         
         // 写入结果到文件
-        write_result_line(output_file, result);
-        output_file.flush(); // 确保实时写入
+        // write_result_line(output_file, result);
+        // output_file.flush(); // 确保实时写入
         
         // 控制台输出进度
         if (result.success) {
-            cout << "  -> SUCCESS: " << result.num_solutions << " solutions, " 
-                 << result.time_secs << " s" << endl;
+            cout << "  -> SUCCESS: " << endl;
         } else {
             cout << "  -> FAILED: " << result.error_message << endl;
         }

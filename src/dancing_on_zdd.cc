@@ -9,13 +9,13 @@
 
 #include "dp_manager.h"
 
-uint64_t ZddWithLinks::num_inactive_updates = 0UL;
-uint64_t ZddWithLinks::num_search_tree_nodes = 0UL;
-uint64_t ZddWithLinks::num_updates = 0UL;
-uint64_t ZddWithLinks::num_head_updates = 0UL;
-uint64_t ZddWithLinks::num_solutions = 0UL;
-uint64_t ZddWithLinks::num_hides = 0UL;
-uint64_t ZddWithLinks::num_failure_backtracks = 0UL;
+uint64_t ZddWithLinks::num_inactive_updates = 0ULL;
+uint64_t ZddWithLinks::num_search_tree_nodes = 0ULL;
+uint64_t ZddWithLinks::num_updates = 0ULL;
+uint64_t ZddWithLinks::num_head_updates = 0ULL;
+uint64_t ZddWithLinks::num_solutions = 0ULL;
+uint64_t ZddWithLinks::num_hides = 0ULL;
+uint64_t ZddWithLinks::num_failure_backtracks = 0ULL;
 
 ZddWithLinks::ZddWithLinks(int num_var, bool sanity_check)
     : num_var_(num_var),
@@ -38,8 +38,7 @@ ZddWithLinks::ZddWithLinks(int num_var, bool sanity_check)
     }
     header_[num_var].right = 0;
 
-    stopwatch.setTimeBound(1200); // 20 minutes time limit
-    std::cout << "Time limit set to 1200 seconds." << std::endl;
+    stopwatch.setTimeBound(60); 
 }
 
 ZddWithLinks::ZddWithLinks(const ZddWithLinks &obj)

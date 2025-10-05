@@ -6,6 +6,8 @@
 #include <unordered_set>
 #include <cstdio>
 #include <cstdlib>
+#include <math.h>
+#include <unistd.h>
 
 #include "dancing_on_zdd.h" 
 #include "dp_manager.h" 

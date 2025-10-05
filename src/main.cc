@@ -3,12 +3,15 @@
 
 #include <chrono>
 #include <unordered_set>
+#include <filesystem>
+#include <fstream>
 
 #include "dancing_on_zdd.h"
 #include "batch_processor.h"
 #include "dp_manager.h"
 
 using namespace std;
+namespace fs = std::filesystem;
 /**
  * main function
  */
@@ -25,7 +28,7 @@ int main(int argc, char** argv) {
     int opt;
     string zdd_file_name;
     string input_directory;
-    string output_file = "zdd_results.txt";
+    string output_file_path = "../../output/zdd_results.csv";
     bool batch_mode = false;
     
     while ((opt = getopt(argc, argv, "z:d:o:h")) != -1) {
@@ -38,7 +41,7 @@ int main(int argc, char** argv) {
                 batch_mode = true;
                 break;
             case 'o':
-                output_file = optarg;
+                output_file_path = optarg;
                 break;
             case 'h':
                 show_help_and_exit();
@@ -52,10 +55,30 @@ int main(int argc, char** argv) {
         // 批量处理模式
         cout << "=== ZDD Batch Processing ===" << endl;
         cout << "Input directory: " << input_directory << endl;
-        cout << "Output file: " << output_file << endl;
+        cout << "Output file: " << output_file_path << endl;
         cout << endl;
         
-        process_directory(input_directory, output_file);
+        // process_directory(input_directory, output_file);
+         // 检查输入目录是否存在
+        if (!fs::exists(input_directory) || !fs::is_directory(input_directory)) {
+            cerr << "Error: Input directory does not exist or is not a directory: " 
+                << input_directory << endl;
+            exit(1);
+        }
+
+        // 创建输出文件
+        ofstream output_file(output_file_path);
+        if (!output_file.is_open()) {
+            cerr << "Error: Cannot create output file: " << output_file_path << endl;
+            exit(1);
+        }
+
+        for (const auto& entry : fs::directory_iterator(input_directory)) {
+            if (entry.is_regular_file()) {
+                
+            }
+        }
+
         
     } else if (!zdd_file_name.empty()) {
         // 单文件处理模式（保持原有功能）
@@ -74,8 +97,7 @@ int main(int argc, char** argv) {
         zdd_with_links.search(solution, 0);
         auto end_time = std::chrono::high_resolution_clock::now();
         
-        printf("num nodes %llu, num solutions %llu, num updates %llu, "
-               "time: %.4f secs\n", ZddWithLinks::num_search_tree_nodes,
+        printf("%llu,%llu,%llu,%.4f\n", ZddWithLinks::num_search_tree_nodes,
                ZddWithLinks::num_solutions, ZddWithLinks::num_updates,
                std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count()
             );
