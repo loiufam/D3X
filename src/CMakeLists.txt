@@ -7,6 +7,5 @@ main.cc
 dancing_on_zdd.cc
 dp_manager.cc
 hidden_node_stack.cc
-batch_processor.cc
 timer.cc)
 

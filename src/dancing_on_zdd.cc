@@ -9,13 +9,6 @@
 
 #include "dp_manager.h"
 
-uint64_t ZddWithLinks::num_inactive_updates = 0ULL;
-uint64_t ZddWithLinks::num_search_tree_nodes = 0ULL;
-uint64_t ZddWithLinks::num_updates = 0ULL;
-uint64_t ZddWithLinks::num_head_updates = 0ULL;
-uint64_t ZddWithLinks::num_solutions = 0ULL;
-uint64_t ZddWithLinks::num_hides = 0ULL;
-uint64_t ZddWithLinks::num_failure_backtracks = 0ULL;
 
 ZddWithLinks::ZddWithLinks(int num_var, bool sanity_check)
     : num_var_(num_var),
@@ -31,14 +24,22 @@ ZddWithLinks::ZddWithLinks(int num_var, bool sanity_check)
       depth_upper_trace_buf_(MAX_DEPTH, std::vector<uint32_t>()),
       depth_upper_change_pts_buf_(MAX_DEPTH, std::vector<size_t>()),
       depth_upper_change_node_ids_buf_(MAX_DEPTH, std::vector<int32_t>()) {
-    header_.emplace_back(num_var_, 1, -1, -1, 0,
-                         0);  // the head of header cells
+    
+    num_inactive_updates = 0ULL;
+    num_search_tree_nodes = 0ULL;
+    num_updates = 0ULL;
+    num_head_updates = 0ULL;
+    num_solutions = 0ULL;
+    num_hides = 0ULL;
+    num_failure_backtracks = 0ULL;
+    
+    header_.emplace_back(num_var_, 1, -1, -1, 0, 0);  // the head of header cells
     for (int i = 0; i < num_var_; i++) {
         header_.emplace_back(i, i + 2, -1, -1, i + 1, 0);
     }
     header_[num_var].right = 0;
 
-    stopwatch.setTimeBound(60); 
+    stopwatch.setTimeBound(1200); 
 }
 
 ZddWithLinks::ZddWithLinks(const ZddWithLinks &obj)
@@ -75,11 +76,12 @@ bool ZddWithLinks::operator==(const ZddWithLinks &obj) const {
 }
 
 void ZddWithLinks::search(vector<vector<uint16_t>> &solution, const int depth) {
-    num_search_tree_nodes++;
-
     if (stopwatch.timeBoundBroken()) {
         throw std::runtime_error("time limit exceeded");
     }
+   
+    num_search_tree_nodes++;
+
 
     if (header_[0].right == 0)  // all columns are covered
     {

@@ -173,13 +173,13 @@ struct Header {
 class ZddWithLinks {
    public:
     // counters
-    static uint64_t num_search_tree_nodes;
-    static uint64_t num_solutions;
-    static uint64_t num_updates;
-    static uint64_t num_head_updates;
-    static uint64_t num_inactive_updates;
-    static uint64_t num_hides;
-    static uint64_t num_failure_backtracks;
+    uint64_t num_search_tree_nodes;
+    uint64_t num_solutions;
+    uint64_t num_updates;
+    uint64_t num_head_updates;
+    uint64_t num_inactive_updates;
+    uint64_t num_hides;
+    uint64_t num_failure_backtracks;
 
     ZddWithLinks(int num_var, bool sanity_check = false);
     ZddWithLinks(const ZddWithLinks &obj);
