@@ -176,8 +176,8 @@ int main(int argc, char** argv) {
         zdd_with_links.search(solution, 0);
         auto end_time = std::chrono::high_resolution_clock::now();
         
-        printf("%llu,%llu,%llu,%.4f\n", zdd_with_links.num_search_tree_nodes,
-               zdd_with_links.num_solutions, zdd_with_links.num_updates,
+        printf("Solutions: %llu, Time: %.4f s\n", 
+               zdd_with_links.num_solutions, 
                std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count()
             );
                    
