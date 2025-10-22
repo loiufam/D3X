@@ -1,0 +1,3 @@
+[submodule "GMLToZdd"]
+    path = GMLToZdd
+    url = https://github.com/loiufam/GMLToZdd.git
