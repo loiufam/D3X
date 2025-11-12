@@ -7,7 +7,13 @@
 #include <fstream>
 
 #include "dancing_on_zdd.h"
+#include "MyCSV.h"
 #include "dp_manager.h"
+
+const int D3X_TIME_COLUMN_INDEX = 5; 
+const string table_file = "../../../Algorithm_DXD/exp_results.csv"; // 结果表格文件
+const string output_d3x_results_file = "../../../Algorithm_DXD/d3x_results.csv"; // D3X结果输出文件
+const string d3x_result_csv = "../../output/d3x_results.csv";
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -88,7 +94,7 @@ int main(int argc, char** argv) {
 
     if (batch_mode && !input_directory.empty()) {
         // 批量处理模式
-        cout << "=== ZDD Batch Processing ===" << endl;
+        cout << "=== D3X Batch Processing ===" << endl;
         cout << "Input directory: " << input_directory << endl;
         cout << "Output file: " << output_file_path << endl;
         cout << endl;
@@ -102,18 +108,21 @@ int main(int argc, char** argv) {
         }
 
         // 创建输出文件
-        ofstream output_file(output_file_path);
-        output_file << "Filename,Nodes,sols,Updates,Time(s),Status" << endl;
+        // ofstream output_file(output_file_path);
+        // output_file << "Filename,Nodes,sols,Updates,Time(s),Status" << endl;
 
-        if (!output_file.is_open()) {
-            cerr << "Error: Cannot create output file: " << output_file_path << endl;
-            exit(1);
-        }
+        // if (!output_file.is_open()) {
+        //     cerr << "Error: Cannot create output file: " << output_file_path << endl;
+        //     exit(1);
+        // }
+        MyCSV experimentCSV; // 结果CSV处理器
+        experimentCSV.readCSV(table_file); // 读取结果表格
+        int counter = 0; // 计数器
 
         for (const auto& entry : fs::directory_iterator(input_directory)) {
             if (entry.is_regular_file()) {
                 string file_name = entry.path().stem().string();
-                output_file << file_name << ",";
+                // output_file << file_name << ",";
 
                 try {
 
@@ -129,35 +138,44 @@ int main(int argc, char** argv) {
 
                     vector<vector<uint16_t>> solution;
                     auto start_time = std::chrono::high_resolution_clock::now();
-                    zdd_with_links.stopwatch.markStartTime();
+                    // zdd_with_links.stopwatch.reset();
+                    zdd_with_links.startTimer();
                     zdd_with_links.search(solution, 0);
+                    // zdd_with_links.stopwatch.markStopTime();
                     auto end_time = std::chrono::high_resolution_clock::now();
+                    double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count();
 
-                    printf("num_nodes: %llu, sols: %llu, num_updates: %llu, time: %.4fs\n", zdd_with_links.num_search_tree_nodes,
-                            zdd_with_links.num_solutions, zdd_with_links.num_updates,
-                            std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count()
+                    cout << "solved successfully: " << file_name << ", time: " << std::to_string(elapsed_seconds) << "s" << endl;
+                    // printf("num_nodes: %llu, sols: %llu, num_updates: %llu, time: %.4fs\n", zdd_with_links.num_search_tree_nodes,
+                    //         zdd_with_links.num_solutions, zdd_with_links.num_updates,
+                    //         elapsed_seconds
+                    // );
+                    experimentCSV.updateTime(
+                        file_name, 
+                        elapsed_seconds,
+                        D3X_TIME_COLUMN_INDEX,
+                        false
                     );
 
-                    output_file << zdd_with_links.num_search_tree_nodes << ","
-                                << zdd_with_links.num_solutions << ","
-                                << zdd_with_links.num_updates << ","
-                                << std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count() << ","
-                                << "SUCCESS\n";
-                    output_file.flush();
-
                 } catch (const std::runtime_error& e) {
-                    output_file  << "-,"
-                                << "-,"
-                                << "-,"
-                                << "-,"
-                                << "FAILED\n";
-                    output_file.flush();
+                    cout << "solved Time out" << endl;
+
+                    experimentCSV.updateTime(
+                        file_name, 
+                        0.0,
+                        D3X_TIME_COLUMN_INDEX,
+                        true
+                    );
                 }
                 cout << file_name << " done." << endl;
                 cout << endl;
             }
+            // if (++counter % 5 == 0) {
+            //     experimentCSV.writeCSV(output_d3x_results_file);
+            // }
+            experimentCSV.writeCSV(d3x_result_csv);
         }
-        output_file.close();
+
         cout << "All Done." << endl;
     } else if (!zdd_file_name.empty()) {
         // 单文件处理模式（保持原有功能）
@@ -175,10 +193,12 @@ int main(int argc, char** argv) {
         auto start_time = std::chrono::high_resolution_clock::now();
         zdd_with_links.search(solution, 0);
         auto end_time = std::chrono::high_resolution_clock::now();
-        
-        printf("Solutions: %llu, Time: %.4f s\n", 
-               zdd_with_links.num_solutions, std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count()
-            );
+        double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count();
+
+        cout << "solved successfully " << "time: " << std::to_string(elapsed_seconds) << "s" << endl;
+        // printf("Solutions: %llu, Time: %.4f s\n", 
+        //        zdd_with_links.num_solutions, std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count()
+        //     );
                    
     } else {
         show_help_and_exit();

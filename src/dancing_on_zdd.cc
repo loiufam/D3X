@@ -39,7 +39,7 @@ ZddWithLinks::ZddWithLinks(int num_var, bool sanity_check)
     }
     header_[num_var].right = 0;
 
-    stopwatch.setTimeBound(1200); 
+    stopwatch->setTimeBound(1500); 
 }
 
 ZddWithLinks::ZddWithLinks(const ZddWithLinks &obj)
@@ -76,8 +76,8 @@ bool ZddWithLinks::operator==(const ZddWithLinks &obj) const {
 }
 
 void ZddWithLinks::search(vector<vector<uint16_t>> &solution, const int depth) {
-    if (stopwatch.timeBoundBroken()) {
-        throw std::runtime_error("time limit exceeded");
+    if (stopwatch->timeBoundBroken()) {
+        throw std::runtime_error("time out");
     }
    
     num_search_tree_nodes++;
@@ -85,7 +85,7 @@ void ZddWithLinks::search(vector<vector<uint16_t>> &solution, const int depth) {
 
     if (header_[0].right == 0)  // all columns are covered
     {
-        num_solutions += 1;
+        // num_solutions += 1;
 
         return;
     }
@@ -113,8 +113,10 @@ void ZddWithLinks::search(vector<vector<uint16_t>> &solution, const int depth) {
 
     depth_choice_buf_[depth].clear();
     depth_choice_buf_[depth].push_back((uint16_t)min_count_column);
+
     batch_cover(std::cbegin(depth_choice_buf_[depth]),
                 std::cend(depth_choice_buf_[depth]));
+
     int node_id = header_[min_count_column].down;
 
     int lower_change_idx = -1;
@@ -126,8 +128,10 @@ void ZddWithLinks::search(vector<vector<uint16_t>> &solution, const int depth) {
         for (auto up_id = 0; up_id < node.count_upper; ++up_id) {
             compute_upper_choice(node_id, up_id,
                                  depth_upper_choice_buf_[depth]);
+
             reverse(depth_upper_choice_buf_[depth].begin(),
                     depth_upper_choice_buf_[depth].end());
+
             batch_cover(depth_upper_choice_buf_[depth].begin(),
                         depth_upper_choice_buf_[depth].end());
 
@@ -143,6 +147,7 @@ void ZddWithLinks::search(vector<vector<uint16_t>> &solution, const int depth) {
                     depth_lower_choice_buf_[depth]);
                 if (finished) break;
             }
+            
             batch_uncover(depth_upper_choice_buf_[depth].begin(),
                           depth_upper_choice_buf_[depth].end());
         }

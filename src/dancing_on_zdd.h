@@ -184,7 +184,10 @@ class ZddWithLinks {
     ZddWithLinks(int num_var, bool sanity_check = false);
     ZddWithLinks(const ZddWithLinks &obj);
 
-    CStopWatch stopwatch;
+    void startTimer() {
+        stopwatch->reset();
+        stopwatch->markStartTime();
+    }
 
     bool operator==(const ZddWithLinks &obj) const;
 
@@ -206,6 +209,8 @@ class ZddWithLinks {
     bool sanity() const;
 
    private:
+
+    std::unique_ptr<CStopWatch> stopwatch = std::make_unique<CStopWatch>(); // timer
     /***
      * parent link operation methods.
      *
