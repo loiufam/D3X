@@ -12,8 +12,8 @@
 
 const int D3X_TIME_COLUMN_INDEX = 5; 
 const string table_file = "../../../Algorithm_DXD/exp_results.csv"; // 结果表格文件
-const string output_d3x_results_file = "../../../Algorithm_DXD/d3x_results.csv"; // D3X结果输出文件
-const string d3x_result_csv = "../../output/d3x_results.csv";
+const string output_d3x_results_file = "../../../Algorithm_DXD/d3x_results_11_30.csv"; // D3X结果输出文件
+// const string d3x_result_csv = "../../output/d3x_results.csv";
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -96,10 +96,9 @@ int main(int argc, char** argv) {
         // 批量处理模式
         cout << "=== D3X Batch Processing ===" << endl;
         cout << "Input directory: " << input_directory << endl;
-        cout << "Output file: " << output_file_path << endl;
+        cout << "Output file: " << output_d3x_results_file << endl;
         cout << endl;
         
-        // process_directory(input_directory, output_file);
          // 检查输入目录是否存在
         if (!fs::exists(input_directory) || !fs::is_directory(input_directory)) {
             cerr << "Error: Input directory does not exist or is not a directory: " 
@@ -107,14 +106,6 @@ int main(int argc, char** argv) {
             exit(1);
         }
 
-        // 创建输出文件
-        // ofstream output_file(output_file_path);
-        // output_file << "Filename,Nodes,sols,Updates,Time(s),Status" << endl;
-
-        // if (!output_file.is_open()) {
-        //     cerr << "Error: Cannot create output file: " << output_file_path << endl;
-        //     exit(1);
-        // }
         MyCSV experimentCSV; // 结果CSV处理器
         experimentCSV.readCSV(table_file); // 读取结果表格
         int counter = 0; // 计数器
@@ -122,7 +113,7 @@ int main(int argc, char** argv) {
         for (const auto& entry : fs::directory_iterator(input_directory)) {
             if (entry.is_regular_file()) {
                 string file_name = entry.path().stem().string();
-                // output_file << file_name << ",";
+                if (file_name == ".DS_Store") continue;
 
                 try {
 
@@ -138,10 +129,10 @@ int main(int argc, char** argv) {
 
                     vector<vector<uint16_t>> solution;
                     auto start_time = std::chrono::high_resolution_clock::now();
-                    // zdd_with_links.stopwatch.reset();
+
                     zdd_with_links.startTimer();
                     zdd_with_links.search(solution, 0);
-                    // zdd_with_links.stopwatch.markStopTime();
+
                     auto end_time = std::chrono::high_resolution_clock::now();
                     double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count();
 
@@ -170,10 +161,8 @@ int main(int argc, char** argv) {
                 cout << file_name << " done." << endl;
                 cout << endl;
             }
-            // if (++counter % 5 == 0) {
-            //     experimentCSV.writeCSV(output_d3x_results_file);
-            // }
-            experimentCSV.writeCSV(d3x_result_csv);
+
+            experimentCSV.writeCSV(output_d3x_results_file);
         }
 
         cout << "All Done." << endl;
