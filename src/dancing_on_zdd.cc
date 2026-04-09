@@ -39,7 +39,11 @@ ZddWithLinks::ZddWithLinks(int num_var, bool sanity_check)
     }
     header_[num_var].right = 0;
 
-    stopwatch->setTimeBound(1500); 
+    stopwatch->setTimeBound(1500);
+
+    // 初始化终端节点
+    T_ZDD = make_shared<ZDDNode>(-1, nullptr, nullptr, true); // ZDD的T节点
+    F_ZDD = make_shared<ZDDNode>(-2, nullptr, nullptr, true); // ZDD的F节点
 }
 
 ZddWithLinks::ZddWithLinks(const ZddWithLinks &obj)
@@ -73,6 +77,36 @@ bool ZddWithLinks::operator==(const ZddWithLinks &obj) const {
         }
     }
     return equals;
+}
+
+size_t ZddWithLinks::hashFunction(int r, ZDDNode* x, ZDDNode* y) {
+    return std::hash<int>()(r) ^ (std::hash<int>()(x->label) << 1) ^ (std::hash<int>()(y->label) << 2);
+}
+
+shared_ptr<ZDDNode> ZddWithLinks::unique(int r, shared_ptr<ZDDNode> x, shared_ptr<ZDDNode> y) {
+    if (x == y || y == F_ZDD) {
+        return x;
+    }
+
+    std::size_t key = hashFunction(r, x.get(), y.get());
+    if (t_ZddNodes.find(key) != t_ZddNodes.end()) {
+        return t_ZddNodes[key];
+    }
+
+    auto zdd_node = make_shared<ZDDNode>(r, x, y);
+    t_ZddNodes[key] = zdd_node;
+    return zdd_node;
+}
+
+size_t ZddWithLinks::getCurrentStateHash() const {
+    size_t hash_value = 0;
+    int16_t cur = header_[0].right;
+    while (cur != 0) {
+        const Header &header = header_[cur];
+        hash_value ^= std::hash<int>()(header.var) ^ std::hash<int>()(header.count);
+        cur = header.right;
+    }
+    return hash_value;
 }
 
 void ZddWithLinks::search(vector<vector<uint16_t>> &solution, const int depth) {
@@ -163,6 +197,113 @@ void ZddWithLinks::search(vector<vector<uint16_t>> &solution, const int depth) {
     }
 
     return;
+}
+
+shared_ptr<ZDDNode> ZddWithLinks::D3XZ(const int depth) {
+    if (stopwatch->timeBoundBroken()) {
+        throw std::runtime_error("Time OUT");
+    }
+
+    if (header_[0].right == 0) {
+        return T_ZDD;
+    }
+
+    size_t columnState = getCurrentStateHash();
+    if (memo_cache.find(columnState) != memo_cache.end()) {
+        return memo_cache[columnState]; 
+    }
+
+    // choose the column with minimum count
+    count_t min_count = UINT32_MAX;
+    int min_count_column = -1;
+    int remain_cols = 0;
+    for (int head_pos = header_[0].right; head_pos != 0;
+         head_pos = header_[head_pos].right) {
+        const Header &header = header_[head_pos];
+        remain_cols++;
+
+        if (header.count == 0) {
+            // cannot cover column, backtrack.
+            num_failure_backtracks++;
+            memo_cache[columnState] = F_ZDD;
+            return F_ZDD;
+        }
+
+        if (header.count < min_count) {
+            min_count_column = head_pos;
+            min_count = header.count;
+        }
+    }
+
+    depth_choice_buf_[depth].clear();
+    depth_choice_buf_[depth].push_back((uint16_t)min_count_column);
+
+    batch_cover(std::cbegin(depth_choice_buf_[depth]),
+                std::cend(depth_choice_buf_[depth]));
+
+    int node_id = header_[min_count_column].down;
+
+    shared_ptr<ZDDNode> x_node = F_ZDD;
+
+    while (node_id >= 0) {
+        const Node &node = table_[node_id];
+
+        count_t current_rank = node.count_lo;
+
+        for (auto up_id = 0; up_id < node.count_upper; ++up_id) {
+            
+            // 1. 获取 Upper 路径并同时算出 Upper Rank
+            count_t upper_rank = compute_upper_choice_and_rank(node_id, up_id, 
+                                                               depth_upper_choice_buf_[depth]);
+            
+            reverse(depth_upper_choice_buf_[depth].begin(), 
+                    depth_upper_choice_buf_[depth].end());
+            
+            batch_cover(depth_upper_choice_buf_[depth].begin(), 
+                        depth_upper_choice_buf_[depth].end());
+
+            compute_lower_initial_choice(node.hi, depth_lower_trace_buf_[depth], 
+                                         depth_lower_change_pts_buf_[depth],
+                                         depth_lower_choice_buf_[depth]);
+            
+            // 内层循环：遍历所有可能的后缀路径
+            for (;;) {
+                
+                // 2. 实时计算当前 Lower 路径的 Rank
+                count_t lower_rank = 0;
+                for (uint32_t val : depth_lower_trace_buf_[depth]) {
+                    if (val & 1U) { // 如果走了 1-edge (hi)
+                        lower_rank += table_[val >> 1U].count_lo;
+                    }
+                }
+
+                // 3. 三者相加，得到这条路径在整个 ZDD 中的全局唯一 ID！
+                count_t row_id = upper_rank + current_rank + lower_rank;
+
+                shared_ptr<ZDDNode> y_node = D3XZ(depth + 1);
+                x_node = unique(row_id, x_node, y_node); 
+                // --------------------------------------------------------
+
+                bool finished = compute_lower_next_choice(
+                    depth_lower_trace_buf_[depth],
+                    depth_lower_change_pts_buf_[depth],
+                    depth_lower_choice_buf_[depth]);
+                if (finished) break;
+            }
+            
+            batch_uncover(depth_upper_choice_buf_[depth].begin(), 
+                          depth_upper_choice_buf_[depth].end());
+        }
+
+        node_id = node.down;
+    }
+
+    batch_uncover(std::cbegin(depth_choice_buf_[depth]),
+                  std::cend(depth_choice_buf_[depth]));
+
+    memo_cache[columnState] = x_node;
+
+    return x_node;
 }
 
 // 从文件中加载ZDD
@@ -882,6 +1023,42 @@ void ZddWithLinks::setup_dancing_links() {
     dp_mgr_ = make_unique<DpManager>(table_, num_var_);
 }
 
+count_t ZddWithLinks::compute_upper_choice_and_rank(
+    int32_t node_id, count_t up_id, vector<uint16_t> &choice) noexcept {
+    
+    choice.clear();
+    count_t upper_rank = 0; //记录前缀的 Rank
+    
+    for (;;) {
+        const Node &node = table_[node_id];
+        if (plink_is_term(node.parents_head)) break;
+
+        count_t offset = 0UL;
+        plink_t plink = node.parents_head;
+        for (;;) {
+            const auto parent_id = plink_node_id(plink);
+            const Node &parent = table_[parent_id];
+            
+            if (offset + parent.count_upper > up_id) {
+                up_id = up_id - offset;
+                node_id = parent_id;
+                
+                if (plink_is_hi(plink)) {
+                    choice.emplace_back(parent.var);
+                    //因为从父节点走了 1-edge (hi)，累加该父节点的 0-edge 路径数
+                    upper_rank += parent.count_lo; 
+                }
+                break;
+            } else {
+                offset += parent.count_upper;
+            }
+            plink = plink_get_next(plink);
+        }
+    }
+    return upper_rank;
+}
+
+// 根据节点id计算前缀路径
 void ZddWithLinks::compute_upper_choice(int32_t node_id, count_t up_id,
                                         vector<uint16_t> &choice) noexcept {
     choice.clear();

@@ -167,6 +167,26 @@ struct Header {
     int32_t padding2;
 };
 
+// ZddNode
+struct ZDDNode {
+    int label;
+    shared_ptr<ZDDNode> lo;
+    shared_ptr<ZDDNode> hi;
+    bool isTerminal;
+
+    ZDDNode(int label, shared_ptr<ZDDNode> lo, shared_ptr<ZDDNode> hi, bool isTerminal = false)
+        : label(label), lo(lo), hi(hi), isTerminal(isTerminal) {}
+    
+    
+    bool operator==(const ZDDNode& other) const {
+        return label == other.label && lo == other.lo && hi == other.hi;
+    }
+    
+    // 拷贝构造函数
+    ZDDNode(const ZDDNode& other) : label(other.label), isTerminal(other.isTerminal), lo(other.lo), hi(other.hi) {}
+
+};
+
 /**
  * DanceDD structure
  */
@@ -191,6 +211,9 @@ class ZddWithLinks {
 
     bool operator==(const ZddWithLinks &obj) const;
 
+    shared_ptr<ZDDNode> T_ZDD; // ZDD的T节点
+    shared_ptr<ZDDNode> F_ZDD; // ZDD的F节点
+
     /**
      * The main recursive procedure.
      * @param solution: partioal solution found so far
@@ -208,7 +231,21 @@ class ZddWithLinks {
     // check validity of the dancedd structure
     bool sanity() const;
 
+    size_t getCurrentStateHash() const;
+
+    // 引入zdd，通过缓存优化exact cover问题的求解
+    size_t hashFunction(int r, ZDDNode* x, ZDDNode* y);
+    shared_ptr<ZDDNode> unique(int r, shared_ptr<ZDDNode> x, shared_ptr<ZDDNode> y);
+
+    // 引入ZDD的缓存机制优化D3X
+    shared_ptr<ZDDNode> D3XZ(const int depth);
+
    private:
+
+    // ZDDNodes table
+    std::unordered_map<size_t, shared_ptr<ZDDNode>> t_ZddNodes;
+    // Memo Cache
+    std::unordered_map<size_t, shared_ptr<ZDDNode>> memo_cache;
 
     std::unique_ptr<CStopWatch> stopwatch = std::make_unique<CStopWatch>(); // timer
     /***
@@ -294,6 +331,10 @@ class ZddWithLinks {
     void compute_upper_choice(int32_t node_id, count_t up_id,
                               vector<uint16_t> &choice) noexcept;
 
+    count_t compute_upper_choice_and_rank(int32_t node_id, 
+                                          count_t up_id, 
+                                          vector<uint16_t> &choice) noexcept;
+                                          
     void compute_upper_initial_choice(int32_t node_id,
                                       vector<uint32_t> &visited,
                                       vector<size_t> &diff_choices,

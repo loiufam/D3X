@@ -12,7 +12,7 @@
 
 const int D3X_TIME_COLUMN_INDEX = 5; 
 const string table_file = "../../../Algorithm_DXD/exp_results.csv"; // 结果表格文件
-const string output_d3x_results_file = "../../../Algorithm_DXD/d3x_results_11_30.csv"; // D3X结果输出文件
+const string output_d3x_results_file = "../../../Algorithm_DXD/results/Main/d3x_results.csv"; // D3X结果输出文件
 // const string d3x_result_csv = "../../output/d3x_results.csv";
 
 using namespace std;
@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
                     );
 
                 } catch (const std::runtime_error& e) {
-                    cout << "solved Time out" << endl;
+                    cout << "求解超时" << endl;
 
                     experimentCSV.updateTime(
                         file_name, 
@@ -158,7 +158,7 @@ int main(int argc, char** argv) {
                         true
                     );
                 }
-                cout << file_name << " done." << endl;
+                cout << file_name << " 求解完成." << endl;
                 cout << endl;
             }
 
@@ -178,17 +178,20 @@ int main(int argc, char** argv) {
         }
         
         fprintf(stderr, "load files done\n");
-        vector<vector<uint16_t>> solution;
-        auto start_time = std::chrono::high_resolution_clock::now();
-        zdd_with_links.search(solution, 0);
-        auto end_time = std::chrono::high_resolution_clock::now();
-        double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count();
+        try{
+            vector<vector<uint16_t>> solution;
+            auto start_time = std::chrono::high_resolution_clock::now();
+            zdd_with_links.search(solution, 0);
+            auto end_time = std::chrono::high_resolution_clock::now();
+            double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count();
 
-        cout << "solved successfully " << "time: " << std::to_string(elapsed_seconds) << "s" << endl;
-        // printf("Solutions: %llu, Time: %.4f s\n", 
-        //        zdd_with_links.num_solutions, std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count()
-        //     );
-                   
+            cout << "Time: " << std::to_string(elapsed_seconds) << "s" << endl;
+            // printf("Solutions: %llu, Time: %.4f s\n", 
+            //        zdd_with_links.num_solutions, std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count()
+            //     );
+        } catch (const std::runtime_error& e) {
+            cout << "D3X求解超时" << endl;
+        }
     } else {
         show_help_and_exit();
     }
