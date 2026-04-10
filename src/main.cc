@@ -65,14 +65,17 @@ void show_help_and_exit() {
 }
 
 // 示例: 在build/src/目录下运行: ./d3x -d ../../data -o ../../output/zdd_results.txt
+// 示例: 在build/src/目录下运行: ./d3x -z ../../data/instance1.zdd -m 1
 int main(int argc, char** argv) {
     int opt;
     string zdd_file_name;
     string input_directory;
     string output_file_path = "../../output/zdd_results.csv";
     bool batch_mode = false;
+
+    int d3x_mode = 0;  // 0: D3X, 1: D3XZ
     
-    while ((opt = getopt(argc, argv, "z:d:o:h")) != -1) {
+    while ((opt = getopt(argc, argv, "z:d:o:m:h")) != -1) {
         switch (opt) {
             case 'z':
                 zdd_file_name = optarg;
@@ -83,6 +86,9 @@ int main(int argc, char** argv) {
                 break;
             case 'o':
                 output_file_path = optarg;
+                break;
+            case 'm':
+                d3x_mode = atoi(optarg);
                 break;
             case 'h':
                 show_help_and_exit();
@@ -181,7 +187,17 @@ int main(int argc, char** argv) {
         try{
             vector<vector<uint16_t>> solution;
             auto start_time = std::chrono::high_resolution_clock::now();
-            zdd_with_links.search(solution, 0);
+            if (d3x_mode == 0) {
+                zdd_with_links.search(solution, 0);
+                cout << "Solutions: " << zdd_with_links.num_solutions << endl;
+            } else if (d3x_mode == 1) {
+                auto result = zdd_with_links.D3XZ(0);
+                cout << "ZDD Nodes in solution: " << ZddWithLinks::countZDDNodes(result, zdd_with_links.T_ZDD, zdd_with_links.F_ZDD) << endl;
+                cout << "Solutions: " << ZddWithLinks::countZDDSolutions(result, zdd_with_links.T_ZDD, zdd_with_links.F_ZDD) << endl;
+            } else {
+                cerr << "Invalid D3X mode: " << d3x_mode << ". Use 0 for D3X, 1 for D3XZ." << endl;
+                exit(1);
+            }
             auto end_time = std::chrono::high_resolution_clock::now();
             double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time).count();
 

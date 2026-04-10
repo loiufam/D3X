@@ -16,6 +16,7 @@
 #include <string>
 #include <tuple>
 #include <unordered_map>
+#include <map>
 #include <vector>
 
 #include "hidden_node_stack.h"
@@ -187,6 +188,49 @@ struct ZDDNode {
 
 };
 
+struct UniqueTableKey {
+    int label;
+    ZDDNode* lo;
+    ZDDNode* hi;
+ 
+    bool operator==(const UniqueTableKey& o) const {
+        return label == o.label && lo == o.lo && hi == o.hi;
+    }
+};
+ 
+struct UniqueTableKeyHash {
+    size_t operator()(const UniqueTableKey& k) const {
+        size_t h = std::hash<int>()(k.label);
+        h ^= std::hash<uintptr_t>()(reinterpret_cast<uintptr_t>(k.lo)) * 2654435761ULL;
+        h ^= std::hash<uintptr_t>()(reinterpret_cast<uintptr_t>(k.hi)) * 40503ULL;
+        return h;
+    }
+};
+
+struct MemoKey {
+    // For each active column var: (count, sorted list of active node ids)
+    std::map<uint16_t, std::pair<count_t, std::vector<int32_t>>> columns;
+ 
+    bool operator==(const MemoKey& o) const {
+        return columns == o.columns;
+    }
+};
+ 
+struct MemoKeyHash {
+    size_t operator()(const MemoKey& k) const {
+        size_t h = 0;
+        for (auto& [var, info] : k.columns) {
+            h ^= std::hash<uint16_t>()(var) * 2654435761ULL;
+            h ^= std::hash<uint32_t>()(info.first) * 40503ULL;
+            for (auto nid : info.second) {
+                h ^= std::hash<int32_t>()(nid) * 1103515245ULL;
+                h = (h << 7) | (h >> 57); // rotate
+            }
+        }
+        return h;
+    }
+};
+
 /**
  * DanceDD structure
  */
@@ -235,17 +279,30 @@ class ZddWithLinks {
 
     // 引入zdd，通过缓存优化exact cover问题的求解
     size_t hashFunction(int r, ZDDNode* x, ZDDNode* y);
-    shared_ptr<ZDDNode> unique(int r, shared_ptr<ZDDNode> x, shared_ptr<ZDDNode> y);
 
-    // 引入ZDD的缓存机制优化D3X
+    // Build the current subproblem's canonical memo key
+    MemoKey buildMemoKey() const;
+ 
+    // Proper unique-table lookup/insert for solution ZDD construction
+    shared_ptr<ZDDNode> unique(int r, shared_ptr<ZDDNode> lo, shared_ptr<ZDDNode> hi);
+
+    // D3XZ: build solution ZDD with memoization
     shared_ptr<ZDDNode> D3XZ(const int depth);
+
+    static size_t countZDDNodes(const shared_ptr<ZDDNode>& root,
+                            const shared_ptr<ZDDNode>& T,
+                            const shared_ptr<ZDDNode>& F);
+
+    static uint64_t countZDDSolutions(const shared_ptr<ZDDNode>& root,
+                            const shared_ptr<ZDDNode>& T,
+                            const shared_ptr<ZDDNode>& F);
 
    private:
 
     // ZDDNodes table
-    std::unordered_map<size_t, shared_ptr<ZDDNode>> t_ZddNodes;
+    std::unordered_map<UniqueTableKey, shared_ptr<ZDDNode>, UniqueTableKeyHash> t_ZddNodes;
     // Memo Cache
-    std::unordered_map<size_t, shared_ptr<ZDDNode>> memo_cache;
+    std::unordered_map<MemoKey, shared_ptr<ZDDNode>, MemoKeyHash> memo_cache;
 
     std::unique_ptr<CStopWatch> stopwatch = std::make_unique<CStopWatch>(); // timer
     /***

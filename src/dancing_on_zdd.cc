@@ -80,20 +80,37 @@ bool ZddWithLinks::operator==(const ZddWithLinks &obj) const {
 }
 
 size_t ZddWithLinks::hashFunction(int r, ZDDNode* x, ZDDNode* y) {
-    return std::hash<int>()(r) ^ (std::hash<int>()(x->label) << 1) ^ (std::hash<int>()(y->label) << 2);
+    return std::hash<int>()(r) ^ (std::hash<uintptr_t>()((uintptr_t)x) << 1) 
+        ^ (std::hash<uintptr_t>()((uintptr_t)y) << 2);
 }
 
-shared_ptr<ZDDNode> ZddWithLinks::unique(int r, shared_ptr<ZDDNode> x, shared_ptr<ZDDNode> y) {
-    if (x == y || y == F_ZDD) {
-        return x;
+MemoKey ZddWithLinks::buildMemoKey() const {
+    MemoKey key;
+    for (int16_t cur = header_[0].right; cur != 0; cur = header_[cur].right) {
+        const Header &h = header_[cur];
+        std::vector<int32_t> node_ids;
+        for (int32_t nid = h.down; nid >= 0; nid = table_[nid].down) {
+            node_ids.push_back(nid);
+        }
+        // node_ids are already in column-link order (deterministic)
+        key.columns[h.var] = {h.count, std::move(node_ids)};
     }
+    return key;
+}
 
-    std::size_t key = hashFunction(r, x.get(), y.get());
-    if (t_ZddNodes.find(key) != t_ZddNodes.end()) {
-        return t_ZddNodes[key];
+shared_ptr<ZDDNode> ZddWithLinks::unique(int r, shared_ptr<ZDDNode> lo, shared_ptr<ZDDNode> hi) {
+
+    if (hi == F_ZDD) {
+        return lo;
     }
-
-    auto zdd_node = make_shared<ZDDNode>(r, x, y);
+ 
+    UniqueTableKey key{r, lo.get(), hi.get()};
+    auto it = t_ZddNodes.find(key);
+    if (it != t_ZddNodes.end()) {
+        return it->second;
+    }
+ 
+    auto zdd_node = make_shared<ZDDNode>(r, lo, hi);
     t_ZddNodes[key] = zdd_node;
     return zdd_node;
 }
@@ -111,7 +128,7 @@ size_t ZddWithLinks::getCurrentStateHash() const {
 
 void ZddWithLinks::search(vector<vector<uint16_t>> &solution, const int depth) {
     if (stopwatch->timeBoundBroken()) {
-        throw std::runtime_error("time out");
+        throw std::runtime_error("Time OUT");
     }
    
     num_search_tree_nodes++;
@@ -119,7 +136,7 @@ void ZddWithLinks::search(vector<vector<uint16_t>> &solution, const int depth) {
 
     if (header_[0].right == 0)  // all columns are covered
     {
-        // num_solutions += 1;
+        num_solutions += 1;
 
         return;
     }
@@ -208,24 +225,25 @@ shared_ptr<ZDDNode> ZddWithLinks::D3XZ(const int depth) {
         return T_ZDD;
     }
 
-    size_t columnState = getCurrentStateHash();
-    if (memo_cache.find(columnState) != memo_cache.end()) {
-        return memo_cache[columnState]; 
+    MemoKey memoKey = buildMemoKey();
+    {
+        auto it = memo_cache.find(memoKey);
+        if (it != memo_cache.end()) {
+            return it->second;
+        }
     }
 
     // choose the column with minimum count
     count_t min_count = UINT32_MAX;
     int min_count_column = -1;
-    int remain_cols = 0;
     for (int head_pos = header_[0].right; head_pos != 0;
          head_pos = header_[head_pos].right) {
         const Header &header = header_[head_pos];
-        remain_cols++;
 
         if (header.count == 0) {
             // cannot cover column, backtrack.
             num_failure_backtracks++;
-            memo_cache[columnState] = F_ZDD;
+            memo_cache[memoKey]= F_ZDD;
             return F_ZDD;
         }
 
@@ -266,7 +284,7 @@ shared_ptr<ZDDNode> ZddWithLinks::D3XZ(const int depth) {
                                          depth_lower_change_pts_buf_[depth],
                                          depth_lower_choice_buf_[depth]);
             
-            // 内层循环：遍历所有可能的后缀路径
+            // Inner loop: enumerate all suffix paths through hi-subtree
             for (;;) {
                 
                 // 2. 实时计算当前 Lower 路径的 Rank
@@ -301,9 +319,52 @@ shared_ptr<ZDDNode> ZddWithLinks::D3XZ(const int depth) {
     batch_uncover(std::cbegin(depth_choice_buf_[depth]),
                   std::cend(depth_choice_buf_[depth]));
 
-    memo_cache[columnState] = x_node;
+    memo_cache[memoKey] = x_node;
 
     return x_node;
+}
+
+size_t ZddWithLinks::countZDDNodes(const shared_ptr<ZDDNode>& root,
+                                    const shared_ptr<ZDDNode>& T,
+                                    const shared_ptr<ZDDNode>& F) {
+    if (!root || root == T || root == F) return 0;
+ 
+    size_t count = 0;
+    std::unordered_set<ZDDNode*> visited;
+    std::stack<ZDDNode*> stk;
+    stk.push(root.get());
+ 
+    while (!stk.empty()) {
+        ZDDNode* cur = stk.top();
+        stk.pop();
+        if (!cur || cur == T.get() || cur == F.get()) continue;
+        if (!visited.insert(cur).second) continue;
+        count++;
+        stk.push(cur->lo.get());
+        stk.push(cur->hi.get());
+    }
+    return count;
+}
+
+uint64_t ZddWithLinks::countZDDSolutions(const shared_ptr<ZDDNode>& root,
+                                          const shared_ptr<ZDDNode>& T,
+                                          const shared_ptr<ZDDNode>& F) {
+    if (root == F) return 0;
+    if (root == T) return 1;
+ 
+    // 记忆化：每个 ZDDNode 只算一次
+    std::unordered_map<ZDDNode*, uint64_t> cache;
+    std::function<uint64_t(ZDDNode*)> dfs = [&](ZDDNode* node) -> uint64_t {
+        if (node == T.get()) return 1;
+        if (node == F.get()) return 0;
+        auto it = cache.find(node);
+        if (it != cache.end()) return it->second;
+        // ZDD 语义：路径数 = lo 的路径数 + hi 的路径数
+        uint64_t count = dfs(node->lo.get()) + dfs(node->hi.get());
+        cache[node] = count;
+        return count;
+    };
+    return dfs(root.get());
 }
 
 // 从文件中加载ZDD
