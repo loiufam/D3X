@@ -187,6 +187,7 @@ int main(int argc, char** argv) {
         try{
             vector<vector<uint16_t>> solution;
             auto start_time = std::chrono::high_resolution_clock::now();
+            zdd_with_links.startTimer();
             if (d3x_mode == 0) {
                 zdd_with_links.search(solution, 0);
                 cout << "Solutions: " << zdd_with_links.num_solutions << endl;

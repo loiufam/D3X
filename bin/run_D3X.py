@@ -12,13 +12,13 @@ from datetime import datetime
 
 # 配置
 D3X_EXECUTABLE = "./d3x"
-ZDD_EXP_SET = "../data/zdd_exp_set"
+ZDD_EXP_SET = "../data/batch_1"
 RESULTS_FOLDER = "../output"
 
 # 算法配置：(算法名, 额外参数, 时间列, 解数列, ZDD Size列, 输出文件名)
 ALGORITHMS = [
-    ("D3X",  [],          3, 5, None, "D3X_results.csv"),
-    ("D3XZ", ["-m", "1"], 4, 6, 7,   "D3XZ_results.csv"),
+    ("D3X",  [],          3, 5, None, "D3X_results_batch1.csv"),
+    # ("D3XZ", ["-m", "1"], 4, 6, 7,   "D3XZ_results_batch1.csv"),
 ]
 
 # CSV 表头
