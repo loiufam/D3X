@@ -185,16 +185,16 @@ int main(int argc, char** argv) {
         
         fprintf(stderr, "load files done\n");
         try{
-            vector<vector<uint16_t>> solution;
             auto start_time = std::chrono::high_resolution_clock::now();
             zdd_with_links.startTimer();
             if (d3x_mode == 0) {
+                vector<vector<uint16_t>> solution;
                 zdd_with_links.search(solution, 0);
-                cout << "Solutions: " << zdd_with_links.num_solutions << endl;
+                cout << "Solutions: " << zdd_with_links.num_solutions.toString() << endl;
             } else if (d3x_mode == 1) {
                 auto result = zdd_with_links.D3XZ(0);
                 cout << "ZDD Nodes in solution: " << ZddWithLinks::countZDDNodes(result, zdd_with_links.T_ZDD, zdd_with_links.F_ZDD) << endl;
-                cout << "Solutions: " << ZddWithLinks::countZDDSolutions(result, zdd_with_links.T_ZDD, zdd_with_links.F_ZDD) << endl;
+                cout << "Solutions: " << ZddWithLinks::countZDDSolutions(result, zdd_with_links.T_ZDD, zdd_with_links.F_ZDD).toString() << endl;
             } else {
                 cerr << "Invalid D3X mode: " << d3x_mode << ". Use 0 for D3X, 1 for D3XZ." << endl;
                 exit(1);

@@ -19,6 +19,7 @@
 #include <map>
 #include <vector>
 
+#include "count_result.h"
 #include "hidden_node_stack.h"
 #include "timer.h"
 using namespace std;
@@ -238,7 +239,7 @@ class ZddWithLinks {
    public:
     // counters
     uint64_t num_search_tree_nodes;
-    uint64_t num_solutions;
+    CountResult num_solutions;
     uint64_t num_updates;
     uint64_t num_head_updates;
     uint64_t num_inactive_updates;
@@ -293,7 +294,7 @@ class ZddWithLinks {
                             const shared_ptr<ZDDNode>& T,
                             const shared_ptr<ZDDNode>& F);
 
-    static uint64_t countZDDSolutions(const shared_ptr<ZDDNode>& root,
+    static CountResult countZDDSolutions(const shared_ptr<ZDDNode>& root,
                             const shared_ptr<ZDDNode>& T,
                             const shared_ptr<ZDDNode>& F);
 

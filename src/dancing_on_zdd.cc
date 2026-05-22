@@ -3,6 +3,7 @@
 #include "dancing_on_zdd.h"
 
 #include <exception>
+#include <functional>
 #include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
@@ -29,7 +30,7 @@ ZddWithLinks::ZddWithLinks(int num_var, bool sanity_check)
     num_search_tree_nodes = 0ULL;
     num_updates = 0ULL;
     num_head_updates = 0ULL;
-    num_solutions = 0ULL;
+    num_solutions = CountResult(0);
     num_hides = 0ULL;
     num_failure_backtracks = 0ULL;
     
@@ -136,7 +137,7 @@ void ZddWithLinks::search(vector<vector<uint16_t>> &solution, const int depth) {
 
     if (header_[0].right == 0)  // all columns are covered
     {
-        num_solutions += 1;
+        num_solutions += CountResult(1UL);
 
         return;
     }
@@ -346,21 +347,21 @@ size_t ZddWithLinks::countZDDNodes(const shared_ptr<ZDDNode>& root,
     return count;
 }
 
-uint64_t ZddWithLinks::countZDDSolutions(const shared_ptr<ZDDNode>& root,
-                                          const shared_ptr<ZDDNode>& T,
-                                          const shared_ptr<ZDDNode>& F) {
-    if (root == F) return 0;
-    if (root == T) return 1;
+CountResult ZddWithLinks::countZDDSolutions(const shared_ptr<ZDDNode>& root,
+                                           const shared_ptr<ZDDNode>& T,
+                                           const shared_ptr<ZDDNode>& F) {
+    if (root == F) return CountResult(0);
+    if (root == T) return CountResult(1UL);
  
     // 记忆化：每个 ZDDNode 只算一次
-    std::unordered_map<ZDDNode*, uint64_t> cache;
-    std::function<uint64_t(ZDDNode*)> dfs = [&](ZDDNode* node) -> uint64_t {
-        if (node == T.get()) return 1;
-        if (node == F.get()) return 0;
+    std::unordered_map<ZDDNode*, CountResult> cache;
+    std::function<CountResult(ZDDNode*)> dfs = [&](ZDDNode* node) -> CountResult {
+        if (node == T.get()) return CountResult(1UL);
+        if (node == F.get()) return CountResult(0);
         auto it = cache.find(node);
         if (it != cache.end()) return it->second;
         // ZDD 语义：路径数 = lo 的路径数 + hi 的路径数
-        uint64_t count = dfs(node->lo.get()) + dfs(node->hi.get());
+        CountResult count = dfs(node->lo.get()) + dfs(node->hi.get());
         cache[node] = count;
         return count;
     };

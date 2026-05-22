@@ -12,13 +12,13 @@ from datetime import datetime
 
 # 配置
 D3X_EXECUTABLE = "./d3x"
-ZDD_EXP_SET = "../data/batch_1"
+ZDD_EXP_SET = "../data/batch_2"
 RESULTS_FOLDER = "../output"
 
 # 算法配置：(算法名, 额外参数, 时间列, 解数列, ZDD Size列, 输出文件名)
 ALGORITHMS = [
-    ("D3X",  [],          3, 5, None, "D3X_results_batch1.csv"),
-    # ("D3XZ", ["-m", "1"], 4, 6, 7,   "D3XZ_results_batch1.csv"),
+    ("D3X",  [],          3, 5, None, "D3X_results_batch2.csv"),
+    # ("D3XZ", ["-m", "1"], 4, 6, 7,   "D3XZ_results_batch2.csv"),
 ]
 
 # CSV 表头
@@ -59,7 +59,7 @@ def parse_log_output(output):
     return result
 
 
-def run_algorithm(algo_name, extra_params, input_file):
+def run_algorithm(algo_name, extra_params, input_file, timeout=600):
     """运行单个算法"""
     cmd = [D3X_EXECUTABLE, "-z", input_file] + extra_params
     print(f"  运行命令: {' '.join(cmd)}")
@@ -69,6 +69,7 @@ def run_algorithm(algo_name, extra_params, input_file):
             cmd,
             capture_output=True,
             text=True,
+            timeout=timeout,
             encoding='utf-8',
             errors='replace',
         )
@@ -76,6 +77,10 @@ def run_algorithm(algo_name, extra_params, input_file):
         print(f"  输出: {output[:200]}...")
         return parse_log_output(output)
 
+    except subprocess.TimeoutExpired:
+        print(f"  [超时] 运行超过设定上限 {timeout} 秒。")
+        return {'time': None, 'solutions': None, 'zdd_size': None,
+                'status': 'timeout', 'timeout': True}
     except Exception as e:
         print(f"  错误: {e}")
         return {'time': None, 'solutions': None, 'zdd_size': None,
@@ -120,21 +125,21 @@ def write_csv_results(csv_path, results_data, time_col, sols_col, zdd_col):
             row.append('')
 
         # 时间
-        if result['timeout']:
+        if result.get('timeout'):
             row[time_col] = 'timeout'
-        elif result['time'] is not None:
-            cell = f"{result['time']:.4f}"
-            if result['status'] == 'warning':
+        elif result.get('time') is not None:
+            cell = f"{result.get('time'):.4f}"
+            if result.get('status') == 'warning':
                 cell += ' (WARNING: 0 solutions)'
             row[time_col] = cell
 
         # 解数量
-        if sols_col is not None and result['solutions'] is not None:
-            row[sols_col] = result['solutions']
+        if sols_col is not None and result.get('solutions') is not None:
+            row[sols_col] = result.get('solutions')
  
         # ZDD Size
-        if zdd_col is not None and result['zdd_size'] is not None:
-            row[zdd_col] = str(result['zdd_size'])
+        if zdd_col is not None and result.get('zdd_size') is not None:
+            row[zdd_col] = str(result.get('zdd_size'))
 
     with open(csv_path, 'w', encoding='utf-8', newline='') as f:
         writer = csv.writer(f)
@@ -149,6 +154,10 @@ def main():
                         help=f'输入文件夹路径，默认为 {ZDD_EXP_SET}')
     parser.add_argument('-o', '--output-folder', type=str, default=RESULTS_FOLDER,
                         help=f'结果输出文件夹路径，默认为 {RESULTS_FOLDER}')
+    parser.add_argument('-a', '--append', action='store_true',
+                        help='追加模式：跳过已存在于CSV中的测例')
+    parser.add_argument('-t', '--timeout', type=int, default=600,
+                        help='单次求解的超时时间（秒），默认 600')
     args = parser.parse_args()
 
     input_folder = args.input_folder
@@ -159,6 +168,9 @@ def main():
     print("=" * 60)
     print(f"输入文件夹: {input_folder}")
     print(f"结果文件夹: {results_folder}")
+    if args.append:
+        print("[*] 追加模式已开启：将跳过已有记录的文件")
+    print(f"超时时间: {args.timeout} 秒")
 
     os.makedirs(results_folder, exist_ok=True)
 
@@ -183,15 +195,24 @@ def main():
         results_data = {}
         csv_path = os.path.join(results_folder, output_file)
 
+        # 读取已有结果以实现断点续传跳过逻辑
+        existing_data = read_existing_csv(csv_path) if args.append else {}
+
         for i, input_file in enumerate(input_files, 1):
             filename = os.path.basename(input_file)
+
+            if args.append and filename in existing_data:
+                print(f"\n[{i}/{len(input_files)}] (追加模式) 跳过已有文件: {filename}")
+                continue
+
             print(f"\n[{i}/{len(input_files)}] 处理文件: {filename}")
 
-            result = run_algorithm(algo_name, extra_params, input_file)
+            result = run_algorithm(algo_name, extra_params, input_file, timeout=args.timeout)
             results_data[filename] = result
 
             # 实时写入结果
             write_csv_results(csv_path, results_data, time_col, sols_col, zdd_col)
+            results_data = {}
 
     elapsed = (datetime.now() - start_time).total_seconds()
     print("\n" + "=" * 60)
